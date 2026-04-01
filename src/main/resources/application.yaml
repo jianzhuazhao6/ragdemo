@@ -9,8 +9,11 @@ spring:
       embedding:
         model: gpt-oss:20b-cloud
     vectorstore:
-      mongodb:
-        collection-name: vector_store
+      redis:
+        host: localhost
+        port: 6379
+        db: 0
+        password: ""
         index-name: vector_index
         path-name: embedding
   data:
