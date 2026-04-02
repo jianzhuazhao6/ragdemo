@@ -18,4 +18,4 @@ spring:
         path-name: embedding
   data:
     mongodb:
-      uri: mongodb://localhost:27017/rag_db
+      uri: mongodb://localhost:27017/rag
