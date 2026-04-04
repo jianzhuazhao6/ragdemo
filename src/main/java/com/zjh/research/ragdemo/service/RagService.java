@@ -1,5 +1,6 @@
 package com.zjh.research.ragdemo.service;
 
+import com.zjh.research.ragdemo.dto.ChatDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -10,10 +11,10 @@ import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
-
-;
 
 @Service
 @Slf4j
@@ -25,7 +26,7 @@ public class RagService {
 
     public void ingestPdf(Resource pdfResource) {
         log.info("Ingesting PDF: {}", pdfResource.getFilename());
-        
+
         // 1. Load the PDF document
         TikaDocumentReader reader = new TikaDocumentReader(pdfResource);
         List<Document> documents = reader.get();
@@ -36,20 +37,23 @@ public class RagService {
         List<Document> chunks = splitter.apply(documents);
         log.info("Split into {} chunks", chunks.size());
 
-        // 3. Store in Vector Database (MongoDB)
-        // This will automatically use Ollama for embeddings as configured
-        vectorStore.accept(chunks);
-        log.info("Successfully stored chunks in MongoDB Vector Store");
+        // 3. Store in Redis Vector Store
+        vectorStore.add(chunks);
+        log.info("Successfully stored chunks in Redis Vector Store");
     }
 
-    public String query(String question) {
+    public Mono<String> query(Mono<ChatDto> chatDtoMono) {
         ChatClient chatClient = chatClientBuilder
                 .defaultAdvisors(QuestionAnswerAdvisor.builder(vectorStore).build())
                 .build();
-
-        return chatClient.prompt()
-                .user(question)
-                .call()
-                .content();
+        return chatDtoMono.flatMap(chatDto ->
+                Mono.fromCallable(() -> chatClient.prompt()
+                                .user(spec -> spec.text(chatDto.getUserPrompt()))
+                                .system(spec -> spec.text(chatDto.getSystemPrompt()))
+                                .call()
+                                .content())
+                        .subscribeOn(Schedulers.boundedElastic())
+                        .doOnNext(System.out::println)
+        );
     }
 }

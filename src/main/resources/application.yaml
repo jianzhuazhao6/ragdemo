@@ -7,15 +7,20 @@ spring:
       chat:
         model: gpt-oss:20b-cloud
       embedding:
-        model: gpt-oss:20b-cloud
+        model: nomic-embed-text
     vectorstore:
-      redis:
+      qdrant:
         host: localhost
-        port: 6379
-        db: 0
-        password: ""
-        index-name: vector_index
-        path-name: embedding
+        port: 6334
+        collection: pdfs
+        use-tls: false
+        initialize-schema: true
+  #      redis:
+#        host: localhost
+#        port: 6379
+#        db: 0
+#        password: ""
+#        index-name: embedding
   data:
     mongodb:
       uri: mongodb://localhost:27017/rag
