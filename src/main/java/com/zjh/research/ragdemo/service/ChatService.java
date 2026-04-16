@@ -31,7 +31,7 @@ public class ChatService {
                                 .user(spec -> spec.text(chatDto.getUserPrompt()))
                                 .system(spec -> spec.text(chatDto.getSystemPrompt()))
                                 .call()
-                                .content())
+                                .chatResponse().getResult().getOutput().getText())
                         .subscribeOn(Schedulers.boundedElastic())
                         .doOnNext(System.out::println)
         );
