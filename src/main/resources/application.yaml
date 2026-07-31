@@ -30,7 +30,7 @@ spring:
 #        index-name: embedding
   data:
     mongodb:
-      uri: mongodb://localhost:27017/rag
+      uri: mongodb://localhost:27018/rag
   autoconfigure:
     exclude:
 #      - org.springframework.ai.model.ollama.autoconfigure.OllamaChatAutoConfiguration
